@@ -19,27 +19,56 @@ defmodule StripeDemo1Web.CheckoutLive.New do
   def handle_event("submit", %{"checkout" => checkout_params}, socket) do
     case Checkouts.create_checkout(checkout_params) do
       {:ok, checkout} ->
-        send(self(), {:create_payment_intent, checkout}) # Run this async
+        # Run this async
+        send(self(), {:create_payment_intent, checkout})
 
-        {:noreply, assign(socket, checkout: checkout, changeset: Checkouts.change_checkout(checkout))}
+        {:noreply,
+         assign(socket, checkout: checkout, changeset: Checkouts.change_checkout(checkout))}
+
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :changeset, changeset)}
     end
   end
 
-  def handle_event("payment-success", %{"payment_method" => payment_method_id, "status" => status}, socket) do
+  def handle_event(
+        "payment-success",
+        %{"payment_method" => payment_method_id, "status" => status},
+        socket
+      ) do
     checkout = socket.assigns.checkout
     # Update the checkout with the result
-    {:ok, checkout} = Checkouts.update_checkout(checkout, %{payment_method_id: payment_method_id, status: status})
+    {:ok, checkout} =
+      Checkouts.update_checkout(checkout, %{payment_method_id: payment_method_id, status: status})
 
     {:noreply, assign(socket, :checkout, checkout)}
   end
 
   @impl true
-  def handle_info({:create_payment_intent, %{email: email, name: name, amount: amount, currency: currency} = checkout}, socket) do
-    with {:ok, stripe_customer} <- Stripe.Customer.create(%{email: email, name: name}),
-         {:ok, payment_intent} <- Stripe.PaymentIntent.create(%{customer: stripe_customer.id, amount: amount, currency: currency}) do
-
+  def handle_info(
+        {:create_payment_intent,
+         %{email: email, name: name, amount: amount, currency: currency} = checkout},
+        socket
+      ) do
+    with {:ok, stripe_customer} <-
+           Stripe.Customer.create(%{
+             email: email,
+             name: name,
+             address: %{
+               line1: "510 Townsend St",
+               line2: "abc",
+               postal_code: "98140",
+               city: "San Francisco",
+               state: "CA",
+               country: "US"
+             }
+           }),
+         {:ok, payment_intent} <-
+           Stripe.PaymentIntent.create(%{
+             customer: stripe_customer.id,
+             amount: amount,
+             currency: currency,
+             description: "xyz"
+           }) do
       # Update the checkout
       Checkouts.update_checkout(checkout, %{payment_intent_id: payment_intent.id})
 

@@ -16,9 +16,16 @@ import "phoenix_html"
 import {Socket} from "phoenix"
 import NProgress from "nprogress"
 import {LiveSocket} from "phoenix_live_view"
+// app.js
+import {InitToast} from "./init_toast.js"
+import {InitCheckout} from "./init_checkout"
+
+let Hooks = {}
+Hooks.InitCheckout = InitCheckout
+Hooks.InitToast = InitToast
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
-let liveSocket = new LiveSocket("/live", Socket, {params: {_csrf_token: csrfToken}})
+let liveSocket = new LiveSocket("/live", Socket, {hooks: Hooks, params: {_csrf_token: csrfToken}})
 
 // Show progress bar on live navigation and form submits
 window.addEventListener("phx:page-loading-start", info => NProgress.start())
@@ -32,9 +39,3 @@ liveSocket.connect()
 // >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket
-
-// app.js
-import {InitCheckout} from "./init_checkout"
-
-let Hooks = {}
-Hooks.InitToast = InitToast

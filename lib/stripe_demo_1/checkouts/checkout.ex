@@ -17,7 +17,15 @@ defmodule StripeDemo1.Checkouts.Checkout do
   @doc false
   def changeset(checkout, attrs) do
     checkout
-    |> cast(attrs, [:email, :name, :amount, :currency, :payment_intent_id, :payment_method_id, :status])
-    |> validate_required([:email, :name, :amount, :currency, :payment_intent_id, :payment_method_id, :status])
+    |> cast(attrs, [
+      :email,
+      :name,
+      :amount,
+      :currency,
+      :payment_intent_id,
+      :payment_method_id,
+      :status
+    ])
+    |> validate_required([:email, :name])
   end
 end
