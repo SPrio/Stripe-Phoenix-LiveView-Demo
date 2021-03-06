@@ -1,5 +1,10 @@
 # StripeDemo1
 
+## Test with dummy data:
+4242-4242-4242-4242, 04-22, 123, 12345
+
+<hr>
+
 To start your Phoenix server:
 
   * Install dependencies with `mix deps.get`
